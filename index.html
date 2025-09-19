@@ -35,9 +35,14 @@
         .los-D { background-color: #f59e0b; color: #78350f; }
         .los-E { background-color: #f97316; color: #7c2d12; }
         .los-F { background-color: #ef4444; color: #fef2f2; }
-        select:disabled {
+        select:disabled, input:disabled {
             background-color: #1e293b;
             cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
@@ -45,9 +50,12 @@
 
     <div class="container mx-auto p-4 sm:p-6 md:p-8">
         <!-- Header -->
-        <header class="text-center mb-8">
+        <header class="text-center mb-8 relative">
             <h1 class="text-3xl md:text-4xl font-bold text-sky-400">เครื่องมือวิเคราะห์และจำลองทฤษฎีแถวคอย</h1>
             <p class="text-slate-400 mt-2">Queueing Theory Traffic Analyzer for Traffic Engineers and Planners</p>
+            <button id="help-btn" class="absolute top-0 right-0 p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-sky-400 transition-colors" aria-label="Help">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </button>
         </header>
 
         <!-- Tabs -->
@@ -89,15 +97,62 @@
                             </ul>
                         </div>
                          <div class="card p-6 rounded-lg">
-                            <h3 class="text-lg font-semibold text-gray-100 mb-2">ตัวแบบยอดนิยม (Popular Models)</h3>
-                            <dl class="text-sm space-y-2">
-                                <dt class="font-semibold text-sky-400">M/M/1 & M/M/k:</dt>
-                                <dd class="pl-4 text-slate-300">การมาถึง/บริการแบบสุ่ม (Poisson/Exponential) เหมาะกับระบบทั่วไป</dd>
-                                <dt class="font-semibold text-sky-400">M/D/1:</dt>
-                                <dd class="pl-4 text-slate-300">การมาถึงแบบสุ่ม แต่เวลาให้บริการคงที่ (Deterministic) เหมาะกับระบบอัตโนมัติ</dd>
-                                <dt class="font-semibold text-sky-400">M/M/1/K:</dt>
-                                 <dd class="pl-4 text-slate-300">เหมือน M/M/1 แต่ระบบมีความจุจำกัด (Finite Capacity, K)</dd>
-                            </dl>
+                            <h3 class="text-lg font-semibold text-gray-100 mb-2">ทฤษฎีและสมการของตัวแบบ</h3>
+                            <div class="space-y-3">
+                                <details class="bg-slate-800/50 p-3 rounded-md border border-slate-700">
+                                    <summary class="font-semibold text-sky-400 cursor-pointer">M/M/1 Model</summary>
+                                    <div class="mt-2 text-sm text-slate-300 border-t border-slate-600 pt-2">
+                                        <p class="mb-2">ระบบบริการ 1 ช่องทาง, การมาถึงและการให้บริการเป็นแบบสุ่ม (Poisson/Exponential)</p>
+                                        <ul class="list-disc list-inside space-y-1 font-mono">
+                                            <li>ρ = λ / μ</li>
+                                            <li>L = ρ / (1 - ρ)</li>
+                                            <li>Lq = ρ² / (1 - ρ)</li>
+                                            <li>W = 1 / (μ - λ)</li>
+                                            <li>Wq = λ / (μ * (μ - λ))</li>
+                                        </ul>
+                                    </div>
+                                </details>
+                                <details class="bg-slate-800/50 p-3 rounded-md border border-slate-700">
+                                    <summary class="font-semibold text-sky-400 cursor-pointer">M/M/k Model</summary>
+                                    <div class="mt-2 text-sm text-slate-300 border-t border-slate-600 pt-2">
+                                        <p class="mb-2">ระบบบริการ k ช่องทาง, การมาถึงและการให้บริการเป็นแบบสุ่ม (Erlang C Formula)</p>
+                                        <ul class="list-disc list-inside space-y-1 font-mono">
+                                            <li>ρ = λ / (k * μ)</li>
+                                            <li>P₀ = [ (Σ from n=0 to k-1 of (λ/μ)ⁿ/n!) + ((λ/μ)ᵏ / k!) * (1 / (1-ρ)) ]⁻¹</li>
+                                            <li>Lq = (P₀ * (λ/μ)ᵏ * ρ) / (k! * (1-ρ)²)</li>
+                                            <li>Wq = Lq / λ</li>
+                                            <li>W = Wq + 1/μ</li>
+                                            <li>L = Lq + λ/μ</li>
+                                        </ul>
+                                    </div>
+                                </details>
+                                <details class="bg-slate-800/50 p-3 rounded-md border border-slate-700">
+                                    <summary class="font-semibold text-sky-400 cursor-pointer">M/D/1 Model</summary>
+                                    <div class="mt-2 text-sm text-slate-300 border-t border-slate-600 pt-2">
+                                        <p class="mb-2">ระบบบริการ 1 ช่องทาง, การมาถึงแบบสุ่ม แต่เวลาให้บริการคงที่ (Deterministic)</p>
+                                        <ul class="list-disc list-inside space-y-1 font-mono">
+                                            <li>ρ = λ / μ</li>
+                                            <li>Lq = ρ² / (2 * (1 - ρ))</li>
+                                            <li>Wq = Lq / λ</li>
+                                            <li>L = Lq + ρ</li>
+                                            <li>W = Wq + 1/μ</li>
+                                        </ul>
+                                    </div>
+                                </details>
+                                <details class="bg-slate-800/50 p-3 rounded-md border border-slate-700">
+                                    <summary class="font-semibold text-sky-400 cursor-pointer">M/M/1/K Model</summary>
+                                    <div class="mt-2 text-sm text-slate-300 border-t border-slate-600 pt-2">
+                                        <p class="mb-2">เหมือน M/M/1 แต่ระบบมีความจุจำกัดที่ K, ทำให้เกิดการปฏิเสธการเข้าใช้บริการ (Blocking)</p>
+                                        <ul class="list-disc list-inside space-y-1 font-mono">
+                                            <li>P₀ = (1 - ρ) / (1 - ρ^(K+1))</li>
+                                            <li>Pₖ (Blocking Prob.) = P₀ * ρᵏ</li>
+                                            <li>λ_eff = λ * (1 - Pₖ)</li>
+                                            <li>L = (ρ/(1-ρ)) - ((K+1)ρ^(K+1))/(1-ρ^(K+1))</li>
+                                            <li>W = L / λ_eff</li>
+                                        </ul>
+                                    </div>
+                                </details>
+                            </div>
                         </div>
                     </div>
 
@@ -159,12 +214,22 @@
                              <div>
                                 <label for="sim-scenario" class="block text-sm font-medium text-slate-400">เลือกกรณีศึกษา (Use-case)</label>
                                 <select id="sim-scenario" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500">
-                                    <option value="toll-manual">ด่านเก็บเงินสด</option>
-                                    <option value="toll-etc">ด่านเก็บเงินอัตโนมัติ (ETC)</option>
-                                    <option value="parking-entry">ตู้รับบัตรจอดรถ</option>
-                                    <option value="parking-exit">ตู้คืนบัตร/ชำระเงิน</option>
-                                    <option value="bank-teller">เคาน์เตอร์ธนาคาร</option>
-                                    <option value="coffee-shop">ร้านกาแฟ</option>
+                                    <optgroup label="ด่านเก็บค่าผ่านทาง">
+                                        <option value="toll-manual">ด่านเก็บเงินสด (พนักงาน)</option>
+                                        <option value="toll-etc">ด่านอัตโนมัติ (ETC)</option>
+                                    </optgroup>
+                                    <optgroup label="ที่จอดรถ (ขาเข้า)">
+                                        <option value="parking-entry-auto">ตู้รับบัตรอัตโนมัติ</option>
+                                        <option value="parking-entry-manual">ตู้รับบัตร (พนักงาน)</option>
+                                    </optgroup>
+                                    <optgroup label="ที่จอดรถ (ขาออก)">
+                                        <option value="parking-exit-manual">ตู้จ่ายเงิน (พนักงาน)</option>
+                                        <option value="parking-exit-auto">ตู้คืนบัตรอัตโนมัติ (จ่ายเงินล่วงหน้า)</option>
+                                    </optgroup>
+                                    <optgroup label="เคาน์เตอร์บริการ">
+                                        <option value="bank-teller">เคาน์เตอร์ธนาคาร</option>
+                                        <option value="coffee-shop">ร้านกาแฟ</option>
+                                    </optgroup>
                                 </select>
                             </div>
                              <div class="flex items-center space-x-4">
@@ -201,6 +266,9 @@
                                     </select>
                                 </div>
                             </div>
+                            <div id="md1-tip" class="hidden mt-2 p-3 bg-sky-900/50 border border-sky-700 rounded-md text-xs text-sky-200">
+                                <strong>คำแนะนำ:</strong> หากต้องการวิเคราะห์ระบบอัตโนมัติหลายช่อง (M/D/c) ท่านสามารถใช้โมเดล M/M/k เป็นค่าประมาณเบื้องต้นได้
+                            </div>
                             <div class="pt-2">
                                 <label for="sim-scenario-name" class="block text-sm font-medium text-slate-400">ชื่อสถานการณ์</label>
                                 <input type="text" id="sim-scenario-name" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" placeholder="เช่น 'ปัจจุบัน', 'เพิ่ม 1 ช่อง'">
@@ -212,7 +280,10 @@
                     </div>
                     <!-- Simulation Results -->
                     <div class="lg:col-span-2 card p-6 rounded-lg">
-                        <h3 class="text-lg font-semibold text-gray-100 mb-4">ผลการจำลองและคำแนะนำ</h3>
+                        <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
+                             <h3 class="text-lg font-semibold text-gray-100">ผลการจำลองและคำแนะนำ</h3>
+                             <p id="sim-error" class="text-sm text-red-400 bg-red-900/50 p-2 rounded-md hidden"></p>
+                        </div>
                          <div id="sim-results-container">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
@@ -230,12 +301,37 @@
                                          <p id="sim-recommendation" class="text-sm text-slate-300"></p>
                                      </div>
                                 </div>
-                                <div>
-                                     <h4 class="text-md font-semibold mb-2 text-slate-300">กราฟความไว: Wq vs λ</h4>
-                                     <canvas id="simulation-chart"></canvas>
+                                <div id="pn-chart-container">
+                                     <h4 class="text-md font-semibold mb-2 text-slate-300">การกระจายความน่าจะเป็น (Pn)</h4>
+                                     <div class="relative h-64">
+                                        <canvas id="pn-chart"></canvas>
+                                     </div>
                                 </div>
                             </div>
-                             <p id="sim-error" class="mt-4 text-sm text-red-400 bg-red-900/50 p-3 rounded-md hidden"></p>
+                            <div class="mt-6 border-t border-slate-700 pt-4">
+                                <h4 class="text-md font-semibold mb-2 text-slate-300">การวิเคราะห์ความไว (Sensitivity Analysis)</h4>
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label for="chart-y-axis" class="block text-sm font-medium text-slate-400">แกน Y (ผลลัพธ์)</label>
+                                        <select id="chart-y-axis" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md">
+                                            <option value="Wq">เวลาในแถวคอย (Wq)</option>
+                                            <option value="Lq">หน่วยในแถวคอย (Lq)</option>
+                                            <option value="W">เวลาในระบบ (W)</option>
+                                            <option value="L">หน่วยในระบบ (L)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="chart-x-axis" class="block text-sm font-medium text-slate-400">แกน X (ตัวแปร)</label>
+                                        <select id="chart-x-axis" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md">
+                                            <option value="lambda">อัตราการมาถึง (λ)</option>
+                                            <option value="c">จำนวนช่องบริการ (c)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="relative h-72">
+                                    <canvas id="sensitivity-chart"></canvas>
+                                </div>
+                            </div>
                          </div>
                     </div>
                  </div>
@@ -244,11 +340,14 @@
             <!-- Comparison Tab -->
              <div id="comparison-content" class="hidden">
                  <div class="card p-6 rounded-lg">
-                     <div class="flex justify-between items-center mb-4">
+                     <div class="flex flex-wrap gap-4 justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-100">ตารางเปรียบเทียบสถานการณ์</h3>
-                        <button id="clear-scenarios-btn" class="bg-red-600/50 text-red-200 text-sm font-semibold py-1 px-3 rounded-md hover:bg-red-600/80 transition duration-300">
-                            ล้างทั้งหมด
-                        </button>
+                        <div class="flex flex-wrap gap-2">
+                             <button id="export-scenarios-btn" class="text-sm bg-slate-600 hover:bg-slate-500 text-white font-semibold py-1.5 px-3 rounded-md transition duration-300">Export (.json)</button>
+                             <button id="import-scenarios-btn" class="text-sm bg-slate-600 hover:bg-slate-500 text-white font-semibold py-1.5 px-3 rounded-md transition duration-300">Import (.json)</button>
+                             <input type="file" id="import-file-input" class="hidden" accept=".json">
+                             <button id="clear-scenarios-btn" class="text-sm bg-red-600/50 hover:bg-red-600/80 text-red-200 font-semibold py-1.5 px-3 rounded-md transition duration-300">ล้างทั้งหมด</button>
+                        </div>
                      </div>
                      <div class="overflow-x-auto">
                         <table id="comparison-table" class="w-full text-sm text-left text-gray-300">
@@ -266,14 +365,57 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr id="comparison-placeholder">
-                                    <td colspan="9" class="px-6 py-12 text-center text-slate-400 border-b border-slate-700">ยังไม่มีข้อมูล... กรุณาเพิ่มสถานการณ์จากแท็บ "การจำลองสถานการณ์"</td>
-                                </tr>
+                                <!-- Scenarios will be injected here -->
                             </tbody>
                         </table>
                      </div>
+
+                     <div id="comparison-chart-container" class="mt-6 border-t border-slate-700 pt-4 hidden">
+                         <div class="flex flex-wrap gap-4 justify-between items-center mb-4">
+                            <h4 class="text-md font-semibold text-slate-300">กราฟเปรียบเทียบสถานการณ์</h4>
+                             <div>
+                                 <label for="comparison-chart-metric" class="text-sm font-medium text-slate-400 mr-2">แสดงผล:</label>
+                                 <select id="comparison-chart-metric" class="p-1 text-sm bg-slate-800 border border-slate-600 rounded-md">
+                                     <option value="Wq_sec">เวลาในแถวคอย (Wq)</option>
+                                     <option value="Lq">หน่วยในแถวคอย (Lq)</option>
+                                     <option value="rho">ความหนาแน่น (ρ)</option>
+                                 </select>
+                            </div>
+                         </div>
+                         <div class="relative h-80">
+                            <canvas id="comparison-chart"></canvas>
+                         </div>
+                     </div>
                  </div>
              </div>
+        </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div id="help-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="card w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg shadow-xl">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700 sticky top-0 bg-slate-800/80 backdrop-blur-sm">
+                <h3 class="text-lg font-semibold text-sky-400">อภิธานศัพท์และคำอธิบาย</h3>
+                <button id="close-help-btn" class="text-slate-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-6 space-y-4 text-sm">
+                <h4 class="font-semibold text-gray-100 text-base">ตัวแปรพื้นฐาน</h4>
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                    <dt class="font-semibold text-sky-300">λ (Lambda)</dt><dd class="text-slate-300">อัตราที่ลูกค้าหรือหน่วยบริการเดินทางมาถึงระบบ (เช่น คัน/ชั่วโมง)</dd>
+                    <dt class="font-semibold text-sky-300">μ (Mu)</dt><dd class="text-slate-300">อัตราที่ช่องบริการ 1 ช่องสามารถให้บริการได้ (เช่น คัน/ชั่วโมง)</dd>
+                    <dt class="font-semibold text-sky-300">c or k</dt><dd class="text-slate-300">จำนวนช่องบริการทั้งหมดในระบบ</dd>
+                    <dt class="font-semibold text-sky-300">K</dt><dd class="text-slate-300">ความจุสูงสุดของระบบทั้งหมด (รวมที่กำลังรอและกำลังรับบริการ)</dd>
+                </dl>
+                
+                <h4 class="font-semibold text-gray-100 text-base border-t border-slate-700 pt-4">ผลลัพธ์ด้านประสิทธิภาพ</h4>
+                 <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                    <dt class="font-semibold text-sky-300">ρ (Rho)</dt><dd class="text-slate-300">ความหนาแน่น หรือ Utilization (λ/cμ) บอกสัดส่วนเวลาที่ช่องบริการไม่ว่าง</dd>
+                    <dt class="font-semibold text-sky-300">L</dt><dd class="text-slate-300">จำนวนหน่วยเฉลี่ยในระบบทั้งหมด (ทั้งที่กำลังรอและรับบริการ)</dd>
+                    <dt class="font-semibold text-sky-300">Lq</dt><dd class="text-slate-300">จำนวนหน่วยเฉลี่ยที่รออยู่ในแถวคอย (ไม่รวมที่กำลังรับบริการ)</dd>
+                    <dt class="font-semibold text-sky-300">W</dt><dd class="text-slate-300">เวลาเฉลี่ยที่หนึ่งหน่วยต้องใช้ในระบบ (ตั้งแต่มาถึงจนบริการเสร็จ)</dd>
+                    <dt class="font-semibold text-sky-300">Wq</dt><dd class="text-slate-300">เวลาเฉลี่ยที่หนึ่งหน่วยต้องใช้ในการรอคอยในแถว (ก่อนเริ่มรับบริการ)</dd>
+                </dl>
+            </div>
         </div>
     </div>
 
@@ -287,16 +429,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return r;
     }
     function calculateMM1(lambda, mu) {
-        if (lambda >= mu) return { error: 'λ ต้องน้อยกว่า μ' };
+        if (lambda >= mu) return { error: 'λ ต้องไม่น้อยกว่า μ' };
         const rho = lambda / mu;
         const L = rho / (1 - rho);
         const Lq = Math.pow(rho, 2) / (1 - rho);
         const W = 1 / (mu - lambda);
         const Wq = lambda / (mu * (mu - lambda));
-        return { rho, L, Lq, W, Wq, error: null };
+        return { rho, L, Lq, W, Wq, P0: 1-rho, r: lambda/mu, error: null };
     }
     function calculateMMk(lambda, mu, k) {
-        if (lambda >= k * mu) return { error: 'λ ต้องน้อยกว่า k * μ' };
+        if (k < 1) return { error: 'k ต้องมากกว่า 0' };
+        if (k === 1) return calculateMM1(lambda, mu);
+        if (lambda >= k * mu) return { error: 'λ ต้องไม่น้อยกว่า k * μ' };
         const rho = lambda / (k * mu);
         const r = lambda / mu;
         let sum_part = 0;
@@ -307,10 +451,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const Wq = Lq / lambda;
         const W = Wq + (1 / mu);
         const L = lambda * W;
-        return { rho, L, Lq, W, Wq, error: null };
+        return { rho, L, Lq, W, Wq, P0, r, error: null };
     }
     function calculateMD1(lambda, mu) {
-        if (lambda >= mu) return { error: 'λ ต้องน้อยกว่า μ' };
+        if (lambda >= mu) return { error: 'λ ต้องไม่น้อยกว่า μ' };
         const rho = lambda / mu;
         const Lq = (rho ** 2) / (2 * (1 - rho));
         const Wq = Lq / lambda;
@@ -340,6 +484,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const Lq = lambda_eff * Wq;
         return { rho, L, Lq, W, Wq, pk, error: null };
     }
+
+    function calculatePn(lambda, mu, k, model_results, n_max = 15) {
+        if (!model_results || model_results.error) return null;
+        if (model_results.rho >= 1) return null; // Pn is not meaningful for unstable systems
+        
+        let Pn = [];
+        if (k === 1) { // M/M/1
+            const rho = model_results.rho;
+            const P0 = 1 - rho;
+            for (let n = 0; n <= n_max; n++) {
+                Pn.push(P0 * Math.pow(rho, n));
+            }
+        } else { // M/M/k
+            const P0 = model_results.P0;
+            const r = model_results.r;
+            for (let n = 0; n <= n_max; n++) {
+                if (n < k) {
+                    Pn.push((Math.pow(r, n) / factorial(n)) * P0);
+                } else {
+                    Pn.push((Math.pow(r, n) / (factorial(k) * Math.pow(k, n - k))) * P0);
+                }
+            }
+        }
+        return Pn;
+    }
+
     function showError(element, message) {
         element.textContent = message;
         element.classList.remove('hidden');
@@ -420,63 +590,54 @@ document.addEventListener('DOMContentLoaded', () => {
         scenario: document.getElementById('sim-scenario'),
         model: document.getElementById('sim-model'),
         override: document.getElementById('sim-override-model'),
-        name: document.getElementById('sim-scenario-name')
+        name: document.getElementById('sim-scenario-name'),
+        chartY: document.getElementById('chart-y-axis'),
+        chartX: document.getElementById('chart-x-axis'),
     };
+    const md1Tip = document.getElementById('md1-tip');
     const scenarioPresets = {
-        'toll-manual':   { lambda: 350, k: 2, rate: 240, unit: 'unit_per_hr', model: 'MMk'},
-        'toll-etc':      { lambda: 1200, k: 1, rate: 1200, unit: 'unit_per_hr', model: 'MD1'},
-        'parking-entry': { lambda: 300, k: 1, rate: 450, unit: 'unit_per_hr', model: 'MMk'},
-        'parking-exit':  { lambda: 250, k: 1, rate: 180, unit: 'unit_per_hr', model: 'MMk'},
-        'bank-teller':   { lambda: 30, k: 3, rate: 20, unit: 'unit_per_hr', model: 'MMk'},
-        'coffee-shop':   { lambda: 60, k: 2, rate: 40, unit: 'unit_per_hr', model: 'MMk'},
+        'toll-manual':          { lambda: 350, k: 2, rate: 240, unit: 'unit_per_hr', model: 'MMk'},
+        'toll-etc':             { lambda: 1200, k: 1, rate: 1200, unit: 'unit_per_hr', model: 'MD1'},
+        'parking-entry-auto':   { lambda: 300, k: 1, rate: 450, unit: 'unit_per_hr', model: 'MD1'},
+        'parking-entry-manual': { lambda: 250, k: 1, rate: 360, unit: 'unit_per_hr', model: 'MMk'},
+        'parking-exit-manual':  { lambda: 250, k: 1, rate: 180, unit: 'unit_per_hr', model: 'MMk'},
+        'parking-exit-auto':    { lambda: 700, k: 1, rate: 900, unit: 'unit_per_hr', model: 'MD1'},
+        'bank-teller':          { lambda: 30, k: 3, rate: 20, unit: 'unit_per_hr', model: 'MMk'},
+        'coffee-shop':          { lambda: 60, k: 2, rate: 40, unit: 'unit_per_hr', model: 'MMk'},
     };
-    let simulationChart = null;
-    const scenarios = [];
+    let sensitivityChart = null;
+    let pnChart = null;
+    let scenarios = [];
+    let comparisonChart = null;
+
 
     function updateLabels(unitType) {
         const units = {
             car: {
-                unit_hr: 'คัน/hr',
-                sec_per_unit: 'วินาที/คัน',
-                unit_per_hr: 'คัน/ชั่วโมง',
-                in_system: 'จำนวนรถในระบบ (L):',
-                in_queue: 'จำนวนรถในแถวคอย (Lq):',
-                unit_short: 'คัน'
+                unit_hr: 'คัน/hr', sec_per_unit: 'วินาที/คัน', unit_per_hr: 'คัน/ชั่วโมง',
+                in_system: 'จำนวนรถในระบบ (L):', in_queue: 'จำนวนรถในแถวคอย (Lq):', unit_short: 'คัน'
             },
             person: {
-                unit_hr: 'คน/hr',
-                sec_per_unit: 'วินาที/คน',
-                unit_per_hr: 'คน/ชั่วโมง',
-                in_system: 'จำนวนคนในระบบ (L):',
-                in_queue: 'จำนวนคนในแถวคอย (Lq):',
-                unit_short: 'คน'
+                unit_hr: 'คน/hr', sec_per_unit: 'วินาที/คน', unit_per_hr: 'คน/ชั่วโมง',
+                in_system: 'จำนวนคนในระบบ (L):', in_queue: 'จำนวนคนในแถวคอย (Lq):', unit_short: 'คน'
             }
         };
         const selectedUnits = units[unitType] || units.car; 
-
-        // Update input labels
         document.querySelector('label[for="sim-lambda"]').textContent = `อัตราการมาถึง (λ) (${selectedUnits.unit_hr})`;
         document.querySelector('#sim-service-unit option[value="sec_per_unit"]').textContent = selectedUnits.sec_per_unit;
         document.querySelector('#sim-service-unit option[value="unit_per_hr"]').textContent = selectedUnits.unit_per_hr;
-
-        // Update result labels
         document.querySelector('#sim-l').previousElementSibling.textContent = selectedUnits.in_system;
         document.querySelector('#sim-lq').previousElementSibling.textContent = selectedUnits.in_queue;
-
-        // Update comparison table headers
         document.getElementById('th-lambda').textContent = `λ (${selectedUnits.unit_short}/hr)`;
         document.getElementById('th-mu').textContent = `μ (${selectedUnits.unit_short}/hr)`;
         document.getElementById('th-lq').textContent = `Lq (${selectedUnits.unit_short})`;
     }
 
-
     function applyPreset() {
         const scenarioValue = simInputs.scenario.value;
         const preset = scenarioPresets[scenarioValue];
         const unitType = ['bank-teller', 'coffee-shop'].includes(scenarioValue) ? 'person' : 'car';
-        
         updateLabels(unitType);
-
         simInputs.lambda.value = preset.lambda;
         simInputs.k.value = preset.k;
         simInputs.serviceRate.value = preset.rate;
@@ -490,9 +651,7 @@ document.addEventListener('DOMContentLoaded', () => {
     simInputs.scenario.addEventListener('change', applyPreset);
     simInputs.override.addEventListener('change', () => {
         simInputs.model.disabled = !simInputs.override.checked;
-        if (!simInputs.override.checked) {
-             applyPreset();
-        }
+        if (!simInputs.override.checked) applyPreset();
     });
     
     Object.values(simInputs).forEach(input => {
@@ -501,36 +660,92 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function clearSimulationResultsOnError(rho, unitType) {
+        const unitLabel = unitType === 'person' ? 'คน' : 'คัน';
+        document.getElementById('sim-rho').textContent = isNaN(rho) ? '-' : `${rho.toFixed(3)} (≥ 1)`;
+        document.getElementById('sim-l').textContent = `ไม่สิ้นสุด (∞ ${unitLabel})`;
+        document.getElementById('sim-lq').textContent = `ไม่สิ้นสุด (∞ ${unitLabel})`;
+        document.getElementById('sim-w').textContent = `ไม่สิ้นสุด (∞ min)`;
+        document.getElementById('sim-wq').textContent = `ไม่สิ้นสุด (∞ sec)`;
+        document.getElementById('sim-los').innerHTML = `<span class="los-tag los-F">F</span>`;
+        document.getElementById('sim-recommendation').textContent = 'ระบบไม่เสถียร แถวคอยจะยาวขึ้นเรื่อยๆ ไม่สิ้นสุด! กรุณาเพิ่มอัตราการให้บริการ (μ) หรือลดอัตราการมาถึง (λ)';
+        
+        if (sensitivityChart) { sensitivityChart.destroy(); sensitivityChart = null; }
+        if (pnChart) { pnChart.destroy(); pnChart = null; }
+
+        function showChartError(canvasId, message) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.fillStyle = '#94a3b8';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = '16px Sarabun';
+            ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+            ctx.restore();
+        }
+        showChartError('sensitivity-chart', 'ระบบไม่เสถียร');
+        showChartError('pn-chart', 'ระบบไม่เสถียร');
+        document.getElementById('pn-chart-container').classList.remove('hidden');
+    }
+
     function runSimulation() {
         const lambda = parseFloat(simInputs.lambda.value);
-        const k = parseInt(simInputs.k.value);
+        let k = parseInt(simInputs.k.value);
         const serviceRate = parseFloat(simInputs.serviceRate.value);
         const serviceUnit = simInputs.serviceUnit.value;
         const model = simInputs.model.value;
         const errorContainer = document.getElementById('sim-error');
         const scenarioValue = simInputs.scenario.value;
         const unitType = ['bank-teller', 'coffee-shop'].includes(scenarioValue) ? 'person' : 'car';
+        
+        md1Tip.classList.toggle('hidden', model !== 'MD1');
+        simInputs.k.disabled = (model === 'MD1');
+        document.querySelector('#chart-x-axis option[value="c"]').disabled = (model !== 'MMk');
+        if (simInputs.chartX.value === 'c' && model !== 'MMk') {
+            simInputs.chartX.value = 'lambda';
+        }
+
+        if (model === 'MD1') {
+            k = 1;
+            simInputs.k.value = 1;
+        }
 
         errorContainer.classList.add('hidden');
-        
         if (isNaN(lambda) || isNaN(k) || isNaN(serviceRate) || lambda <= 0 || k < 1 || serviceRate <= 0) return;
 
         const mu = serviceUnit === 'sec_per_unit' ? 3600 / serviceRate : serviceRate;
         
+        let unstable_rho = NaN;
+        if (model === 'MD1' || (model === 'MMk' && k === 1)) unstable_rho = lambda / mu;
+        else if (model === 'MMk') unstable_rho = lambda / (k * mu);
+
         let results;
-        if (model === 'MMk' && k === 1) results = calculateMM1(lambda, mu);
-        else if (model === 'MMk') results = calculateMMk(lambda, mu, k);
+        if (model === 'MMk') results = calculateMMk(lambda, mu, k);
         else if (model === 'MD1') results = calculateMD1(lambda, mu);
 
         document.getElementById('sim-model-used').textContent = model + (model === 'MMk' && k > 1 ? ` (c=${k})` : '');
         
         if (results && results.error) {
             showError(errorContainer, results.error);
-            if(simulationChart) simulationChart.destroy();
+            clearSimulationResultsOnError(unstable_rho, unitType);
         } else if(results) {
             displaySimulationResults(results, unitType);
             generateRecommendation(results.rho);
-            createOrUpdateChart(lambda, mu, k, model, unitType);
+            
+            // Pn Chart
+            if (model === 'MMk') {
+                const pnData = calculatePn(lambda, mu, k, results);
+                createOrUpdatePnChart(pnData, unitType);
+                document.getElementById('pn-chart-container').classList.remove('hidden');
+            } else {
+                if (pnChart) { pnChart.destroy(); pnChart = null; }
+                document.getElementById('pn-chart-container').classList.add('hidden');
+            }
+
+            // Sensitivity Chart
+            createOrUpdateSensitivityChart(lambda, mu, k, model, unitType, simInputs.chartY.value, simInputs.chartX.value);
         }
     }
     
@@ -562,45 +777,118 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (rho >= 0.5) recommendationEl.textContent = 'ความหนาแน่นปานกลาง (0.5 ≤ ρ < 0.7) ระบบยังสามารถรองรับได้ แต่ควรเฝ้าระวัง';
         else recommendationEl.textContent = 'ความหนาแน่นต่ำ (ρ < 0.5) ระบบมีประสิทธิภาพดี';
     }
-    
-    function createOrUpdateChart(lambda, mu, k, model, unitType) {
-        const ctx = document.getElementById('simulation-chart').getContext('2d');
-        if (simulationChart) simulationChart.destroy();
-        
-        const labels = [], dataWq = [];
-        const maxLambda = (model === 'MD1' ? 1 : k) * mu * 0.99;
+
+    function createOrUpdatePnChart(pnData, unitType) {
+        const ctx = document.getElementById('pn-chart').getContext('2d');
+        if (pnChart) pnChart.destroy();
+        if (!pnData) return;
+
+        const labels = pnData.map((_, i) => i);
         const unitLabel = unitType === 'person' ? 'คน' : 'คัน';
         
+        // Dynamic Y-axis scaling logic
+        const significantPn = pnData.length > 2 ? pnData.slice(1) : pnData;
+        const maxProb = Math.max(...significantPn);
+        const yMax = Math.min(1.0, Math.max(0.1, maxProb * 1.25));
+
+        pnChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: `ความน่าจะเป็นของ n ${unitLabel} ในระบบ`,
+                    data: pnData,
+                    backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                    borderColor: '#38bdf8',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }},
+                scales: {
+                    x: { title: { display: true, text: `จำนวนในระบบ (n)`, color: '#94a3b8'}, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                    y: { 
+                        title: { display: true, text: 'ความน่าจะเป็น P(n)', color: '#94a3b8' }, 
+                        beginAtZero: true, 
+                        max: yMax,
+                        grid: { color: '#334155' }, 
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+    
+    function createOrUpdateSensitivityChart(lambda, mu, k, model, unitType, yMetric, xVar) {
+        const ctx = document.getElementById('sensitivity-chart').getContext('2d');
+        if (sensitivityChart) sensitivityChart.destroy();
+        
+        const labels = [], dataPoints = [];
+        const unitLabel = unitType === 'person' ? 'คน' : 'คัน';
+        const yAxisLabels = { Wq: 'เวลาในแถวคอย (sec)', Lq: `หน่วยในแถวคอย (${unitLabel})`, W: 'เวลาในระบบ (min)', L: `หน่วยในระบบ (${unitLabel})`};
+
         let calcFn;
-        if (model === 'MMk' && k === 1) calcFn = (l,m) => calculateMM1(l,m);
-        else if (model === 'MMk') calcFn = (l,m) => calculateMMk(l,m,k);
-        else if (model === 'MD1') calcFn = (l,m) => calculateMD1(l,m);
+        if (model === 'MMk') calcFn = (l, m, c) => calculateMMk(l, m, c);
+        else if (model === 'MD1') calcFn = (l, m, c) => calculateMD1(l, m);
         else return;
 
-        for (let i = 0.1; i <= 1.2; i += 0.1) {
-            const currentLambda = Math.min(lambda * i, maxLambda);
-            const r = calcFn(currentLambda, mu);
-            if (r && !r.error) {
-                labels.push(Math.round(currentLambda));
-                dataWq.push((r.Wq * 3600).toFixed(2));
+        let chartType = 'line';
+
+        if (xVar === 'lambda') {
+            const maxLambda = (model === 'MD1' ? 1 : k) * mu * 0.99;
+            for (let i = 0.1; i <= 1.2; i += 0.1) {
+                const currentLambda = Math.min(lambda * i, maxLambda);
+                const r = calcFn(currentLambda, mu, k);
+                if (r && !r.error) {
+                    labels.push(Math.round(currentLambda));
+                    let value = r[yMetric];
+                    if (yMetric === 'Wq') value *= 3600;
+                    if (yMetric === 'W') value *= 60;
+                    dataPoints.push(value.toFixed(3));
+                }
+            }
+        } else { // xVar === 'c'
+            chartType = 'bar';
+            for (let c_i = 1; c_i <= Math.max(k + 5, 10); c_i++) {
+                const r = calcFn(lambda, mu, c_i);
+                 if (r && !r.error) {
+                    labels.push(c_i);
+                    let value = r[yMetric];
+                    if (yMetric === 'Wq') value *= 3600;
+                    if (yMetric === 'W') value *= 60;
+                    dataPoints.push(value.toFixed(3));
+                } else {
+                    // Stop if it becomes unstable
+                    break;
+                }
             }
         }
+        
+        const xAxisLabel = xVar === 'lambda' ? `อัตราการมาถึง (λ) (${unitLabel}/hr)` : `จำนวนช่องบริการ (c)`;
 
-        simulationChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{
-            label: 'เวลาในแถวคอยเฉลี่ย (Wq)', data: dataWq, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.2)', fill: true, tension: 0.1
-        }]}, options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' }}}, scales: {
-            x: { title: { display: true, text: `อัตราการมาถึง (λ) (${unitLabel}/hr)`, color: '#94a3b8'}, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-            y: { title: { display: true, text: 'เวลาในแถวคอย (sec)', color: '#94a3b8' }, beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' }}
+        sensitivityChart = new Chart(ctx, { type: chartType, data: { labels, datasets: [{
+            label: yAxisLabels[yMetric], data: dataPoints, 
+            borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.6)', 
+            fill: chartType === 'line', tension: 0.1
+        }]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' }}}, scales: {
+            x: { title: { display: true, text: xAxisLabel, color: '#94a3b8'}, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+            y: { title: { display: true, text: yAxisLabels[yMetric], color: '#94a3b8' }, beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' }}
         }}});
     }
     
     // --- Scenario Comparison Logic ---
+    const comparisonChartMetricSelect = document.getElementById('comparison-chart-metric');
+    
     document.getElementById('add-scenario-btn').addEventListener('click', () => {
         const name = simInputs.name.value.trim();
         if (!name) { alert('กรุณาตั้งชื่อสถานการณ์ก่อนเพิ่ม'); return; }
         
         const lambda = parseFloat(simInputs.lambda.value);
-        const k = parseInt(simInputs.k.value);
+        let k = parseInt(simInputs.k.value);
+        if(simInputs.model.value === 'MD1') k = 1;
+
         const serviceRate = parseFloat(simInputs.serviceRate.value);
         const mu = simInputs.serviceUnit.value === 'sec_per_unit' ? 3600 / serviceRate : serviceRate;
         const model = simInputs.model.value;
@@ -608,8 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const unitType = ['bank-teller', 'coffee-shop'].includes(scenarioValue) ? 'person' : 'car';
 
         let results;
-        if (model === 'MMk' && k === 1) results = calculateMM1(lambda, mu);
-        else if (model === 'MMk') results = calculateMMk(lambda, mu, k);
+        if (model === 'MMk') results = calculateMMk(lambda, mu, k);
         else if (model === 'MD1') results = calculateMD1(lambda, mu);
 
         if (results && !results.error) {
@@ -626,22 +913,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('clear-scenarios-btn').addEventListener('click', () => {
+        // The confirm dialog is not supported and has been removed.
+        // The action is now immediate upon clicking.
         scenarios.length = 0;
         renderComparisonTable();
     });
 
     function renderComparisonTable() {
         const tableBody = document.querySelector('#comparison-table tbody');
+        const chartContainer = document.getElementById('comparison-chart-container');
         tableBody.innerHTML = ''; 
 
         if (scenarios.length === 0) {
-             tableBody.innerHTML = `<tr id="comparison-placeholder"><td colspan="9" class="px-6 py-12 text-center text-slate-400 border-b border-slate-700">ยังไม่มีข้อมูล...</td></tr>`;
-             // Reset headers to default
-             updateLabels('car'); 
+            tableBody.innerHTML = `<tr id="comparison-placeholder"><td colspan="9" class="px-6 py-12 text-center text-slate-400 border-b border-slate-700">ยังไม่มีข้อมูล... กรุณาเพิ่มสถานการณ์จากแท็บ "การจำลองสถานการณ์"</td></tr>`;
+            chartContainer.classList.add('hidden');
         } else {
-            // Update headers based on the first item, assuming comparison is for similar types
             updateLabels(scenarios[0].unitType);
-
             scenarios.forEach(s => {
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-700 hover:bg-slate-800/50';
@@ -658,15 +945,122 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 tableBody.appendChild(row);
             });
+            chartContainer.classList.remove('hidden');
+            createOrUpdateComparisonChart();
+        }
+        localStorage.setItem('queueingScenarios', JSON.stringify(scenarios));
+    }
+    
+    function createOrUpdateComparisonChart() {
+        const ctx = document.getElementById('comparison-chart').getContext('2d');
+        if (comparisonChart) comparisonChart.destroy();
+        if (scenarios.length === 0) return;
+
+        const metric = comparisonChartMetricSelect.value;
+        const labels = scenarios.map(s => s.name);
+        const data = scenarios.map(s => s[metric]);
+        
+        const metricLabels = {
+            'Wq_sec': 'เวลาในแถวคอย (Wq) (sec)',
+            'Lq': 'หน่วยในแถวคอย (Lq)',
+            'rho': 'ความหนาแน่น (ρ)'
+        };
+        
+        comparisonChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: metricLabels[metric],
+                    data: data,
+                    backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                    borderColor: '#38bdf8',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: true, labels: { color: '#94a3b8' }}},
+                scales: {
+                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                    y: { 
+                        title: { display: true, text: metricLabels[metric], color: '#94a3b8' }, 
+                        beginAtZero: true, 
+                        grid: { color: '#334155' }, 
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+
+    comparisonChartMetricSelect.addEventListener('change', createOrUpdateComparisonChart);
+
+    // --- Save/Load and Help Modal ---
+    document.getElementById('export-scenarios-btn').addEventListener('click', () => {
+        const dataStr = JSON.stringify(scenarios, null, 2);
+        const dataBlob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.download = `queue-scenarios-${new Date().toISOString().slice(0,10)}.json`;
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+    });
+
+    const importFileInput = document.getElementById('import-file-input');
+    document.getElementById('import-scenarios-btn').addEventListener('click', () => importFileInput.click());
+    importFileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedScenarios = JSON.parse(e.target.result);
+                if (Array.isArray(importedScenarios)) { // Basic validation
+                    scenarios = importedScenarios;
+                    renderComparisonTable();
+                } else {
+                    alert('ไฟล์ JSON ไม่ถูกต้อง');
+                }
+            } catch (err) {
+                alert('ไม่สามารถอ่านไฟล์ได้: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; // Reset input
+    });
+
+    const helpModal = document.getElementById('help-modal');
+    document.getElementById('help-btn').addEventListener('click', () => helpModal.classList.remove('hidden'));
+    document.getElementById('close-help-btn').addEventListener('click', () => helpModal.classList.add('hidden'));
+    helpModal.addEventListener('click', (e) => {
+        if (e.target === helpModal) helpModal.classList.add('hidden');
+    });
+
+    function loadFromLocalStorage() {
+        const savedScenarios = localStorage.getItem('queueingScenarios');
+        if (savedScenarios) {
+            try {
+                scenarios = JSON.parse(savedScenarios);
+                renderComparisonTable();
+            } catch (e) {
+                console.error("Error parsing scenarios from localStorage", e);
+                localStorage.removeItem('queueingScenarios');
+            }
         }
     }
     
     // Initial setup
     simInputs.model.disabled = true;
+    loadFromLocalStorage();
     applyPreset();
 });
 </script>
 
 </body>
 </html>
+
+
 
