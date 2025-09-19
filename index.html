@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องมือวิเคราะห์และจำลองทฤษฎีแถวคอย</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: radial-gradient(1200px 800px at 20% -10%, #1e293b 0%, #0f172a 55%);
+        }
+        .tab-active {
+            border-color: #38bdf8;
+            color: #38bdf8;
+            background-color: rgba(56, 189, 248, 0.1);
+        }
+        .card {
+             background: linear-gradient(180deg, rgba(30,41,59,0.5), rgba(12,18,31,0.5)); 
+             border: 1px solid #334155;
+        }
+        .los-tag {
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .los-A { background-color: #22c55e; color: #f0fdf4; }
+        .los-B { background-color: #4ade80; color: #14532d; }
+        .los-C { background-color: #84cc16; color: #1a2e05; }
+        .los-D { background-color: #f59e0b; color: #78350f; }
+        .los-E { background-color: #f97316; color: #7c2d12; }
+        .los-F { background-color: #ef4444; color: #fef2f2; }
+        select:disabled {
+            background-color: #1e293b;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-gray-200">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-sky-400">เครื่องมือวิเคราะห์และจำลองทฤษฎีแถวคอย</h1>
+            <p class="text-slate-400 mt-2">Queueing Theory Traffic Analyzer for Traffic Engineers and Planners</p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="mb-6 border-b border-slate-700">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="main-tabs" role="tablist">
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg tab-active" id="theory-tab" type="button">
+                        การวิเคราะห์เชิงทฤษฎี
+                    </button>
+                </li>
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg border-transparent hover:text-gray-300 hover:border-gray-600" id="simulation-tab" type="button">
+                        การจำลองสถานการณ์
+                    </button>
+                </li>
+                 <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg border-transparent hover:text-gray-300 hover:border-gray-600" id="comparison-tab" type="button">
+                        เปรียบเทียบสถานการณ์
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div>
+            <!-- Theoretical Analysis Tab -->
+            <div id="theory-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Theory Explanations -->
+                    <div class="space-y-4">
+                        <div class="card p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-100 mb-2">หลักการพื้นฐานและสัญลักษณ์</h3>
+                            <p class="text-sm text-slate-400">ทฤษฎีแถวคอย (Queueing Theory) ใช้วิเคราะห์แถวคอยที่เกิดขึ้นเมื่อความต้องการใช้บริการมากกว่าความสามารถในการให้บริการ สัญลักษณ์ที่สำคัญคือ:</p>
+                            <ul class="list-disc list-inside mt-2 text-sm space-y-1 text-slate-300">
+                                <li><span class="font-semibold text-sky-400">λ (Lambda):</span> อัตราการมาถึงเฉลี่ย (Arrival Rate)</li>
+                                <li><span class="font-semibold text-sky-400">μ (Mu):</span> อัตราการให้บริการเฉลี่ย (Service Rate)</li>
+                                <li><span class="font-semibold text-sky-400">ρ (Rho):</span> ความหนาแน่นการจราจร (Traffic Intensity) = λ / μ</li>
+                                <li><span class="font-semibold text-sky-400">Kendall's Notation (A/S/c):</span> A/S = รูปแบบการมาถึง/บริการ, c = จำนวนช่องบริการ</li>
+                            </ul>
+                        </div>
+                         <div class="card p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-100 mb-2">ตัวแบบยอดนิยม (Popular Models)</h3>
+                            <dl class="text-sm space-y-2">
+                                <dt class="font-semibold text-sky-400">M/M/1 & M/M/k:</dt>
+                                <dd class="pl-4 text-slate-300">การมาถึง/บริการแบบสุ่ม (Poisson/Exponential) เหมาะกับระบบทั่วไป</dd>
+                                <dt class="font-semibold text-sky-400">M/D/1:</dt>
+                                <dd class="pl-4 text-slate-300">การมาถึงแบบสุ่ม แต่เวลาให้บริการคงที่ (Deterministic) เหมาะกับระบบอัตโนมัติ</dd>
+                                <dt class="font-semibold text-sky-400">M/M/1/K:</dt>
+                                 <dd class="pl-4 text-slate-300">เหมือน M/M/1 แต่ระบบมีความจุจำกัด (Finite Capacity, K)</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Theory Calculator -->
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-100 mb-4">เครื่องมือคำนวณเชิงทฤษฎี</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="theory-model" class="block text-sm font-medium text-slate-400">เลือกตัวแบบ (Model)</label>
+                                <select id="theory-model" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500">
+                                    <option value="MM1">M/M/1</option>
+                                    <option value="MMk">M/M/k</option>
+                                    <option value="MD1">M/D/1</option>
+                                    <option value="MM1K">M/M/1/K</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="theory-lambda" class="block text-sm font-medium text-slate-400">อัตราการมาถึง (λ) (หน่วย/ชั่วโมง)</label>
+                                <input type="number" id="theory-lambda" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" placeholder="เช่น 80">
+                            </div>
+                            <div>
+                                <label for="theory-mu" class="block text-sm font-medium text-slate-400">อัตราการให้บริการ (μ) (ต่อ 1 ช่อง) (หน่วย/ชั่วโมง)</label>
+                                <input type="number" id="theory-mu" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" placeholder="เช่น 100">
+                            </div>
+                            <div id="theory-k-container" class="hidden">
+                                <label for="theory-k" class="block text-sm font-medium text-slate-400">จำนวนช่องบริการ (k)</label>
+                                <input type="number" id="theory-k" min="2" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" placeholder="เช่น 2">
+                            </div>
+                             <div id="theory-K-capacity-container" class="hidden">
+                                <label for="theory-K-capacity" class="block text-sm font-medium text-slate-400">ความจุระบบ (K) (รวมที่กำลังบริการ)</label>
+                                <input type="number" id="theory-K-capacity" min="1" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" placeholder="เช่น 10">
+                            </div>
+                            <button id="calculate-theory-btn" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">
+                                คำนวณ
+                            </button>
+                        </div>
+                        <div id="theory-results" class="mt-6 border-t border-slate-700 pt-4 hidden">
+                           <h4 class="text-md font-semibold mb-2">ผลลัพธ์การวิเคราะห์:</h4>
+                            <div id="theory-results-grid" class="grid grid-cols-2 gap-2 text-sm">
+                                <span class="text-slate-400">ความหนาแน่น (ρ):</span><span id="theory-rho" class="font-mono font-semibold"></span>
+                                <span class="text-slate-400">จำนวนในระบบ (L):</span><span id="theory-l" class="font-mono font-semibold"></span>
+                                <span class="text-slate-400">จำนวนในแถวคอย (Lq):</span><span id="theory-lq" class="font-mono font-semibold"></span>
+                                <span class="text-slate-400">เวลาในระบบ (W):</span><span id="theory-w" class="font-mono font-semibold"></span>
+                                <span class="text-slate-400">เวลาในแถวคอย (Wq):</span><span id="theory-wq" class="font-mono font-semibold"></span>
+                            </div>
+                             <p id="theory-error" class="mt-4 text-sm text-red-400 bg-red-900/50 p-3 rounded-md hidden"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scenario Simulation Tab -->
+            <div id="simulation-content" class="hidden">
+                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Simulation Inputs -->
+                    <div class="lg:col-span-1 card p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-100 mb-4">ตั้งค่าการจำลองสถานการณ์</h3>
+                        <div class="space-y-4">
+                             <div>
+                                <label for="sim-scenario" class="block text-sm font-medium text-slate-400">เลือกกรณีศึกษา (Use-case)</label>
+                                <select id="sim-scenario" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500">
+                                    <option value="toll-manual">ด่านเก็บเงินสด</option>
+                                    <option value="toll-etc">ด่านเก็บเงินอัตโนมัติ (ETC)</option>
+                                    <option value="parking-entry">ตู้รับบัตรจอดรถ</option>
+                                    <option value="parking-exit">ตู้คืนบัตร/ชำระเงิน</option>
+                                    <option value="bank-teller">เคาน์เตอร์ธนาคาร</option>
+                                    <option value="coffee-shop">ร้านกาแฟ</option>
+                                </select>
+                            </div>
+                             <div class="flex items-center space-x-4">
+                                <div class="flex-1">
+                                    <label for="sim-model" class="block text-sm font-medium text-slate-400">แบบจำลอง</label>
+                                    <select id="sim-model" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm">
+                                        <option value="MMk">M/M/k</option>
+                                        <option value="MD1">M/D/1</option>
+                                    </select>
+                                </div>
+                                <div class="pt-6">
+                                    <input id="sim-override-model" type="checkbox" class="h-4 w-4 rounded border-gray-500 text-sky-600 focus:ring-sky-500">
+                                    <label for="sim-override-model" class="text-sm text-slate-400 ml-2">เลือกเอง</label>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="sim-lambda" class="block text-sm font-medium text-slate-400">อัตราการมาถึง (λ) (หน่วย/hr)</label>
+                                <input type="number" id="sim-lambda" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" value="350">
+                            </div>
+                             <div>
+                                <label for="sim-k" class="block text-sm font-medium text-slate-400">จำนวนช่องบริการ / ตู้ (c)</label>
+                                <input type="number" id="sim-k" min="1" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" value="2">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="sim-service-rate" class="block text-sm font-medium text-slate-400">อัตราให้บริการ</label>
+                                    <input type="number" id="sim-service-rate" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" value="240">
+                                </div>
+                                <div>
+                                    <label for="sim-service-unit" class="block text-sm font-medium text-slate-400">หน่วย</label>
+                                    <select id="sim-service-unit" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm">
+                                        <option value="unit_per_hr">หน่วย/ชั่วโมง</option>
+                                        <option value="sec_per_unit">วินาที/หน่วย</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="pt-2">
+                                <label for="sim-scenario-name" class="block text-sm font-medium text-slate-400">ชื่อสถานการณ์</label>
+                                <input type="text" id="sim-scenario-name" class="mt-1 block w-full p-2 bg-slate-800 border border-slate-600 rounded-md shadow-sm" placeholder="เช่น 'ปัจจุบัน', 'เพิ่ม 1 ช่อง'">
+                            </div>
+                             <button id="add-scenario-btn" class="w-full bg-sky-500 text-slate-900 font-semibold py-2 px-4 rounded-md hover:bg-sky-600 transition duration-300">
+                                + เพิ่มเพื่อเปรียบเทียบ
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Simulation Results -->
+                    <div class="lg:col-span-2 card p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-100 mb-4">ผลการจำลองและคำแนะนำ</h3>
+                         <div id="sim-results-container">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="text-md font-semibold mb-2 text-slate-300">ผลลัพธ์การวิเคราะห์ (<span id="sim-model-used" class="font-mono text-sky-400"></span>):</h4>
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                        <span class="text-slate-400">ความหนาแน่น (ρ):</span><span id="sim-rho" class="font-mono font-semibold"></span>
+                                        <span class="text-slate-400">หน่วยในระบบ (L):</span><span id="sim-l" class="font-mono font-semibold"></span>
+                                        <span class="text-slate-400">หน่วยในแถวคอย (Lq):</span><span id="sim-lq" class="font-mono font-semibold"></span>
+                                        <span class="text-slate-400">เวลาในระบบ (W):</span><span id="sim-w" class="font-mono font-semibold"></span>
+                                        <span class="text-slate-400">เวลาในแถวคอย (Wq):</span><span id="sim-wq" class="font-mono font-semibold"></span>
+                                        <span class="text-slate-400">Level of Service:</span><span id="sim-los"></span>
+                                    </div>
+                                     <div class="mt-4 p-4 bg-slate-800 rounded-lg border border-slate-700">
+                                         <h4 class="text-md font-semibold text-sky-400 mb-1">คำแนะนำเบื้องต้น</h4>
+                                         <p id="sim-recommendation" class="text-sm text-slate-300"></p>
+                                     </div>
+                                </div>
+                                <div>
+                                     <h4 class="text-md font-semibold mb-2 text-slate-300">กราฟความไว: Wq vs λ</h4>
+                                     <canvas id="simulation-chart"></canvas>
+                                </div>
+                            </div>
+                             <p id="sim-error" class="mt-4 text-sm text-red-400 bg-red-900/50 p-3 rounded-md hidden"></p>
+                         </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Comparison Tab -->
+             <div id="comparison-content" class="hidden">
+                 <div class="card p-6 rounded-lg">
+                     <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-100">ตารางเปรียบเทียบสถานการณ์</h3>
+                        <button id="clear-scenarios-btn" class="bg-red-600/50 text-red-200 text-sm font-semibold py-1 px-3 rounded-md hover:bg-red-600/80 transition duration-300">
+                            ล้างทั้งหมด
+                        </button>
+                     </div>
+                     <div class="overflow-x-auto">
+                        <table id="comparison-table" class="w-full text-sm text-left text-gray-300">
+                            <thead class="text-xs text-sky-300 uppercase bg-slate-700/50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">สถานการณ์</th>
+                                    <th scope="col" class="px-6 py-3">Model</th>
+                                    <th scope="col" id="th-lambda" class="px-6 py-3 text-right">λ (u/hr)</th>
+                                    <th scope="col" id="th-mu" class="px-6 py-3 text-right">μ (u/hr)</th>
+                                    <th scope="col" class="px-6 py-3 text-right">c</th>
+                                    <th scope="col" class="px-6 py-3 text-right">ρ</th>
+                                    <th scope="col" class="px-6 py-3 text-right">Wq (sec)</th>
+                                    <th scope="col" id="th-lq" class="px-6 py-3 text-right">Lq (u)</th>
+                                    <th scope="col" class="px-6 py-3 text-center">LOS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="comparison-placeholder">
+                                    <td colspan="9" class="px-6 py-12 text-center text-slate-400 border-b border-slate-700">ยังไม่มีข้อมูล... กรุณาเพิ่มสถานการณ์จากแท็บ "การจำลองสถานการณ์"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                     </div>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Global Helper Functions ---
+    function factorial(n) {
+        if (n < 0) return NaN;
+        if (n === 0) return 1;
+        let r = 1; for (let i = 2; i <= n; i++) r *= i;
+        return r;
+    }
+    function calculateMM1(lambda, mu) {
+        if (lambda >= mu) return { error: 'λ ต้องน้อยกว่า μ' };
+        const rho = lambda / mu;
+        const L = rho / (1 - rho);
+        const Lq = Math.pow(rho, 2) / (1 - rho);
+        const W = 1 / (mu - lambda);
+        const Wq = lambda / (mu * (mu - lambda));
+        return { rho, L, Lq, W, Wq, error: null };
+    }
+    function calculateMMk(lambda, mu, k) {
+        if (lambda >= k * mu) return { error: 'λ ต้องน้อยกว่า k * μ' };
+        const rho = lambda / (k * mu);
+        const r = lambda / mu;
+        let sum_part = 0;
+        for (let n = 0; n < k; n++) sum_part += Math.pow(r, n) / factorial(n);
+        const P0_denominator = sum_part + (Math.pow(r, k) / factorial(k)) * (1 / (1 - rho));
+        const P0 = 1 / P0_denominator;
+        const Lq = (P0 * Math.pow(r, k) * rho) / (factorial(k) * Math.pow(1 - rho, 2));
+        const Wq = Lq / lambda;
+        const W = Wq + (1 / mu);
+        const L = lambda * W;
+        return { rho, L, Lq, W, Wq, error: null };
+    }
+    function calculateMD1(lambda, mu) {
+        if (lambda >= mu) return { error: 'λ ต้องน้อยกว่า μ' };
+        const rho = lambda / mu;
+        const Lq = (rho ** 2) / (2 * (1 - rho));
+        const Wq = Lq / lambda;
+        const L = rho + Lq;
+        const W = Wq + (1 / mu);
+        return { rho, L, Lq, W, Wq, error: null };
+    }
+    function calculateMM1K(lambda, mu, K) {
+        if (isNaN(K) || K <= 0) return { error: 'ความจุ (K) ต้องเป็นบวก' };
+        const rho = lambda / mu;
+        let p0;
+        if (rho === 1) {
+            p0 = 1 / (K + 1);
+        } else {
+            p0 = (1 - rho) / (1 - Math.pow(rho, K + 1));
+        }
+        const pk = p0 * Math.pow(rho, K);
+        const lambda_eff = lambda * (1 - pk);
+        let L = 0;
+        if (rho === 1) {
+            L = K / 2;
+        } else {
+            L = rho * (1 - (K + 1) * Math.pow(rho, K) + K * Math.pow(rho, K + 1)) / ((1 - rho) * (1 - Math.pow(rho, K + 1)));
+        }
+        const W = lambda_eff > 0 ? L / lambda_eff : 0;
+        const Wq = W - (1/mu);
+        const Lq = lambda_eff * Wq;
+        return { rho, L, Lq, W, Wq, pk, error: null };
+    }
+    function showError(element, message) {
+        element.textContent = message;
+        element.classList.remove('hidden');
+    }
+
+    // --- Tab switching logic ---
+    const tabs = { 'theory-tab': 'theory-content', 'simulation-tab': 'simulation-content', 'comparison-tab': 'comparison-content' };
+    const tabButtons = Object.keys(tabs).map(id => document.getElementById(id));
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => {
+                btn.classList.remove('tab-active');
+                document.getElementById(tabs[btn.id]).classList.add('hidden');
+            });
+            button.classList.add('tab-active');
+            document.getElementById(tabs[button.id]).classList.remove('hidden');
+        });
+    });
+
+    // --- Theoretical Calculator Logic ---
+    const theoryModelSelect = document.getElementById('theory-model');
+    const theoryKContainer = document.getElementById('theory-k-container');
+    const theoryKCapacityContainer = document.getElementById('theory-K-capacity-container');
+    const calculateTheoryBtn = document.getElementById('calculate-theory-btn');
+
+    theoryModelSelect.addEventListener('change', () => {
+        const model = theoryModelSelect.value;
+        theoryKContainer.classList.toggle('hidden', model !== 'MMk');
+        theoryKCapacityContainer.classList.toggle('hidden', model !== 'MM1K');
+    });
+    calculateTheoryBtn.addEventListener('click', () => {
+        const model = theoryModelSelect.value;
+        const lambda = parseFloat(document.getElementById('theory-lambda').value);
+        const mu = parseFloat(document.getElementById('theory-mu').value);
+        const k = parseInt(document.getElementById('theory-k').value);
+        const K_cap = parseInt(document.getElementById('theory-K-capacity').value);
+        const resultsContainer = document.getElementById('theory-results');
+        const errorContainer = document.getElementById('theory-error');
+        const resultsGrid = document.getElementById('theory-results-grid');
+        
+        resultsContainer.classList.add('hidden');
+        errorContainer.classList.add('hidden');
+
+        if (isNaN(lambda) || isNaN(mu) || lambda <= 0 || mu <= 0) {
+            showError(errorContainer, 'กรุณาใส่ค่า λ และ μ ที่เป็นบวก');
+            return;
+        }
+
+        let results;
+        if (model === 'MM1') results = calculateMM1(lambda, mu);
+        else if (model === 'MMk') results = calculateMMk(lambda, mu, k);
+        else if (model === 'MD1') results = calculateMD1(lambda, mu);
+        else if (model === 'MM1K') results = calculateMM1K(lambda, mu, K_cap);
+        
+        if (results && results.error) {
+            showError(errorContainer, results.error);
+        } else if (results) {
+            resultsGrid.innerHTML = `
+                <span class="text-slate-400">ความหนาแน่น (ρ):</span><span class="font-mono font-semibold">${results.rho.toFixed(4)}</span>
+                <span class="text-slate-400">จำนวนในระบบ (L):</span><span class="font-mono font-semibold">${results.L.toFixed(4)} u</span>
+                <span class="text-slate-400">จำนวนในแถวคอย (Lq):</span><span class="font-mono font-semibold">${results.Lq.toFixed(4)} u</span>
+                <span class="text-slate-400">เวลาในระบบ (W):</span><span class="font-mono font-semibold">${(results.W * 60).toFixed(2)} min</span>
+                <span class="text-slate-400">เวลาในแถวคอย (Wq):</span><span class="font-mono font-semibold">${(results.Wq * 3600).toFixed(2)} sec</span>
+            `;
+            if(results.pk !== undefined){
+                 resultsGrid.innerHTML += `<span class="text-slate-400">Blocking Prob. (Pₖ):</span><span class="font-mono font-semibold">${results.pk.toFixed(4)}</span>`;
+            }
+            resultsContainer.classList.remove('hidden');
+        }
+    });
+
+    // --- Simulation Logic ---
+    const simInputs = {
+        lambda: document.getElementById('sim-lambda'),
+        k: document.getElementById('sim-k'),
+        serviceRate: document.getElementById('sim-service-rate'),
+        serviceUnit: document.getElementById('sim-service-unit'),
+        scenario: document.getElementById('sim-scenario'),
+        model: document.getElementById('sim-model'),
+        override: document.getElementById('sim-override-model'),
+        name: document.getElementById('sim-scenario-name')
+    };
+    const scenarioPresets = {
+        'toll-manual':   { lambda: 350, k: 2, rate: 240, unit: 'unit_per_hr', model: 'MMk'},
+        'toll-etc':      { lambda: 1200, k: 1, rate: 1200, unit: 'unit_per_hr', model: 'MD1'},
+        'parking-entry': { lambda: 300, k: 1, rate: 450, unit: 'unit_per_hr', model: 'MMk'},
+        'parking-exit':  { lambda: 250, k: 1, rate: 180, unit: 'unit_per_hr', model: 'MMk'},
+        'bank-teller':   { lambda: 30, k: 3, rate: 20, unit: 'unit_per_hr', model: 'MMk'},
+        'coffee-shop':   { lambda: 60, k: 2, rate: 40, unit: 'unit_per_hr', model: 'MMk'},
+    };
+    let simulationChart = null;
+    const scenarios = [];
+
+    function updateLabels(unitType) {
+        const units = {
+            car: {
+                unit_hr: 'คัน/hr',
+                sec_per_unit: 'วินาที/คัน',
+                unit_per_hr: 'คัน/ชั่วโมง',
+                in_system: 'จำนวนรถในระบบ (L):',
+                in_queue: 'จำนวนรถในแถวคอย (Lq):',
+                unit_short: 'คัน'
+            },
+            person: {
+                unit_hr: 'คน/hr',
+                sec_per_unit: 'วินาที/คน',
+                unit_per_hr: 'คน/ชั่วโมง',
+                in_system: 'จำนวนคนในระบบ (L):',
+                in_queue: 'จำนวนคนในแถวคอย (Lq):',
+                unit_short: 'คน'
+            }
+        };
+        const selectedUnits = units[unitType] || units.car; 
+
+        // Update input labels
+        document.querySelector('label[for="sim-lambda"]').textContent = `อัตราการมาถึง (λ) (${selectedUnits.unit_hr})`;
+        document.querySelector('#sim-service-unit option[value="sec_per_unit"]').textContent = selectedUnits.sec_per_unit;
+        document.querySelector('#sim-service-unit option[value="unit_per_hr"]').textContent = selectedUnits.unit_per_hr;
+
+        // Update result labels
+        document.querySelector('#sim-l').previousElementSibling.textContent = selectedUnits.in_system;
+        document.querySelector('#sim-lq').previousElementSibling.textContent = selectedUnits.in_queue;
+
+        // Update comparison table headers
+        document.getElementById('th-lambda').textContent = `λ (${selectedUnits.unit_short}/hr)`;
+        document.getElementById('th-mu').textContent = `μ (${selectedUnits.unit_short}/hr)`;
+        document.getElementById('th-lq').textContent = `Lq (${selectedUnits.unit_short})`;
+    }
+
+
+    function applyPreset() {
+        const scenarioValue = simInputs.scenario.value;
+        const preset = scenarioPresets[scenarioValue];
+        const unitType = ['bank-teller', 'coffee-shop'].includes(scenarioValue) ? 'person' : 'car';
+        
+        updateLabels(unitType);
+
+        simInputs.lambda.value = preset.lambda;
+        simInputs.k.value = preset.k;
+        simInputs.serviceRate.value = preset.rate;
+        simInputs.serviceUnit.value = preset.unit;
+        if (!simInputs.override.checked) {
+            simInputs.model.value = preset.model;
+        }
+        runSimulation();
+    }
+
+    simInputs.scenario.addEventListener('change', applyPreset);
+    simInputs.override.addEventListener('change', () => {
+        simInputs.model.disabled = !simInputs.override.checked;
+        if (!simInputs.override.checked) {
+             applyPreset();
+        }
+    });
+    
+    Object.values(simInputs).forEach(input => {
+        if (!['scenario', 'override', 'name'].includes(input.id.replace('sim-',''))) {
+            input.addEventListener('input', runSimulation);
+        }
+    });
+
+    function runSimulation() {
+        const lambda = parseFloat(simInputs.lambda.value);
+        const k = parseInt(simInputs.k.value);
+        const serviceRate = parseFloat(simInputs.serviceRate.value);
+        const serviceUnit = simInputs.serviceUnit.value;
+        const model = simInputs.model.value;
+        const errorContainer = document.getElementById('sim-error');
+        const scenarioValue = simInputs.scenario.value;
+        const unitType = ['bank-teller', 'coffee-shop'].includes(scenarioValue) ? 'person' : 'car';
+
+        errorContainer.classList.add('hidden');
+        
+        if (isNaN(lambda) || isNaN(k) || isNaN(serviceRate) || lambda <= 0 || k < 1 || serviceRate <= 0) return;
+
+        const mu = serviceUnit === 'sec_per_unit' ? 3600 / serviceRate : serviceRate;
+        
+        let results;
+        if (model === 'MMk' && k === 1) results = calculateMM1(lambda, mu);
+        else if (model === 'MMk') results = calculateMMk(lambda, mu, k);
+        else if (model === 'MD1') results = calculateMD1(lambda, mu);
+
+        document.getElementById('sim-model-used').textContent = model + (model === 'MMk' && k > 1 ? ` (c=${k})` : '');
+        
+        if (results && results.error) {
+            showError(errorContainer, results.error);
+            if(simulationChart) simulationChart.destroy();
+        } else if(results) {
+            displaySimulationResults(results, unitType);
+            generateRecommendation(results.rho);
+            createOrUpdateChart(lambda, mu, k, model, unitType);
+        }
+    }
+    
+    function mapLOS(Wq_seconds) {
+        if (!isFinite(Wq_seconds) || Wq_seconds > 60) return { grade: 'F' };
+        if (Wq_seconds <= 5) return { grade: 'A' };
+        if (Wq_seconds <= 10) return { grade: 'B' };
+        if (Wq_seconds <= 20) return { grade: 'C' };
+        if (Wq_seconds <= 35) return { grade: 'D' };
+        return { grade: 'E' };
+    }
+
+    function displaySimulationResults(r, unitType) {
+        const Wq_sec = r.Wq * 3600;
+        const los = mapLOS(Wq_sec);
+        const unitLabel = unitType === 'person' ? 'คน' : 'คัน';
+        document.getElementById('sim-rho').textContent = r.rho.toFixed(4);
+        document.getElementById('sim-l').textContent = `${r.L.toFixed(3)} ${unitLabel}`;
+        document.getElementById('sim-lq').textContent = `${r.Lq.toFixed(3)} ${unitLabel}`;
+        document.getElementById('sim-w').textContent = `${(r.W * 60).toFixed(2)} min`;
+        document.getElementById('sim-wq').textContent = `${Wq_sec.toFixed(2)} sec`;
+        document.getElementById('sim-los').innerHTML = `<span class="los-tag los-${los.grade}">${los.grade}</span>`;
+    }
+
+    function generateRecommendation(rho) {
+        const recommendationEl = document.getElementById('sim-recommendation');
+        if (rho >= 0.9) recommendationEl.textContent = 'ความหนาแน่นสูงมาก (ρ ≥ 0.9) ควรพิจารณาเพิ่มช่องบริการหรือลดเวลาให้บริการเร่งด่วน';
+        else if (rho >= 0.7) recommendationEl.textContent = 'ความหนาแน่นค่อนข้างสูง (0.7 ≤ ρ < 0.9) แถวคอยอาจยาวขึ้นเร็ว ควรปรับปรุงประสิทธิภาพ';
+        else if (rho >= 0.5) recommendationEl.textContent = 'ความหนาแน่นปานกลาง (0.5 ≤ ρ < 0.7) ระบบยังสามารถรองรับได้ แต่ควรเฝ้าระวัง';
+        else recommendationEl.textContent = 'ความหนาแน่นต่ำ (ρ < 0.5) ระบบมีประสิทธิภาพดี';
+    }
+    
+    function createOrUpdateChart(lambda, mu, k, model, unitType) {
+        const ctx = document.getElementById('simulation-chart').getContext('2d');
+        if (simulationChart) simulationChart.destroy();
+        
+        const labels = [], dataWq = [];
+        const maxLambda = (model === 'MD1' ? 1 : k) * mu * 0.99;
+        const unitLabel = unitType === 'person' ? 'คน' : 'คัน';
+        
+        let calcFn;
+        if (model === 'MMk' && k === 1) calcFn = (l,m) => calculateMM1(l,m);
+        else if (model === 'MMk') calcFn = (l,m) => calculateMMk(l,m,k);
+        else if (model === 'MD1') calcFn = (l,m) => calculateMD1(l,m);
+        else return;
+
+        for (let i = 0.1; i <= 1.2; i += 0.1) {
+            const currentLambda = Math.min(lambda * i, maxLambda);
+            const r = calcFn(currentLambda, mu);
+            if (r && !r.error) {
+                labels.push(Math.round(currentLambda));
+                dataWq.push((r.Wq * 3600).toFixed(2));
+            }
+        }
+
+        simulationChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{
+            label: 'เวลาในแถวคอยเฉลี่ย (Wq)', data: dataWq, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.2)', fill: true, tension: 0.1
+        }]}, options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' }}}, scales: {
+            x: { title: { display: true, text: `อัตราการมาถึง (λ) (${unitLabel}/hr)`, color: '#94a3b8'}, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+            y: { title: { display: true, text: 'เวลาในแถวคอย (sec)', color: '#94a3b8' }, beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' }}
+        }}});
+    }
+    
+    // --- Scenario Comparison Logic ---
+    document.getElementById('add-scenario-btn').addEventListener('click', () => {
+        const name = simInputs.name.value.trim();
+        if (!name) { alert('กรุณาตั้งชื่อสถานการณ์ก่อนเพิ่ม'); return; }
+        
+        const lambda = parseFloat(simInputs.lambda.value);
+        const k = parseInt(simInputs.k.value);
+        const serviceRate = parseFloat(simInputs.serviceRate.value);
+        const mu = simInputs.serviceUnit.value === 'sec_per_unit' ? 3600 / serviceRate : serviceRate;
+        const model = simInputs.model.value;
+        const scenarioValue = simInputs.scenario.value;
+        const unitType = ['bank-teller', 'coffee-shop'].includes(scenarioValue) ? 'person' : 'car';
+
+        let results;
+        if (model === 'MMk' && k === 1) results = calculateMM1(lambda, mu);
+        else if (model === 'MMk') results = calculateMMk(lambda, mu, k);
+        else if (model === 'MD1') results = calculateMD1(lambda, mu);
+
+        if (results && !results.error) {
+            const Wq_sec = results.Wq * 3600;
+            const los = mapLOS(Wq_sec);
+            scenarios.push({
+                name, model: model + (model === 'MMk' && k > 1 ? `(c=${k})` : ''), lambda, mu, k, rho: results.rho, Wq_sec, Lq: results.Lq, los: los.grade, unitType
+            });
+            renderComparisonTable();
+            simInputs.name.value = '';
+        } else {
+             alert('ไม่สามารถเพิ่มสถานการณ์ได้: ' + (results ? results.error : 'ข้อมูลไม่ถูกต้อง'));
+        }
+    });
+
+    document.getElementById('clear-scenarios-btn').addEventListener('click', () => {
+        scenarios.length = 0;
+        renderComparisonTable();
+    });
+
+    function renderComparisonTable() {
+        const tableBody = document.querySelector('#comparison-table tbody');
+        tableBody.innerHTML = ''; 
+
+        if (scenarios.length === 0) {
+             tableBody.innerHTML = `<tr id="comparison-placeholder"><td colspan="9" class="px-6 py-12 text-center text-slate-400 border-b border-slate-700">ยังไม่มีข้อมูล...</td></tr>`;
+             // Reset headers to default
+             updateLabels('car'); 
+        } else {
+            // Update headers based on the first item, assuming comparison is for similar types
+            updateLabels(scenarios[0].unitType);
+
+            scenarios.forEach(s => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-700 hover:bg-slate-800/50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-gray-100 whitespace-nowrap">${s.name}</td>
+                    <td class="px-6 py-4">${s.model}</td>
+                    <td class="px-6 py-4 text-right">${s.lambda.toFixed(0)}</td>
+                    <td class="px-6 py-4 text-right">${s.mu.toFixed(0)}</td>
+                    <td class="px-6 py-4 text-right">${s.k}</td>
+                    <td class="px-6 py-4 text-right">${s.rho.toFixed(3)}</td>
+                    <td class="px-6 py-4 text-right font-semibold text-sky-300">${s.Wq_sec.toFixed(2)}</td>
+                    <td class="px-6 py-4 text-right">${s.Lq.toFixed(3)}</td>
+                    <td class="px-6 py-4 text-center"><span class="los-tag los-${s.los}">${s.los}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    }
+    
+    // Initial setup
+    simInputs.model.disabled = true;
+    applyPreset();
+});
+</script>
+
+</body>
+</html>
+
